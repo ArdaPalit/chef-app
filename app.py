@@ -4,29 +4,24 @@ from PIL import Image
 
 st.set_page_config(page_title="AI Chef Global", page_icon="🍳", layout="centered")
 
-# Secrets kontrolü
 API_KEY = st.secrets.get("GEMINI_API_KEY")
 
 if not API_KEY:
-    st.error("API Anahtarı bulunamadı! Lütfen Streamlit Cloud 'Secrets' ayarlarını kontrol edin.")
+    st.error("API Anahtarı bulunamadı! Secrets ayarlarını kontrol edin.")
     st.stop()
 
-try:
-    client = genai.Client(api_key=API_KEY)
-except Exception as e:
-    st.error(f"Client başlatılamadı: {e}")
-    st.stop()
+client = genai.Client(api_key=API_KEY)
 
 GLOBAL_PROMPT = """
 Analyze the ingredients in this refrigerator photo.
 1. List the identified ingredients.
 2. Provide 3 creative recipes (Breakfast, Lunch, Dinner).
-3. Detect the language of the user's request and respond in that same language.
-4. Format the output nicely with emojis and bold text.
+3. Respond in the same language as the user's request.
+4. Format with emojis and bold text.
 """
 
-st.title("👨‍🍳 Global AI Chef")
-st.write("Fotoğraf yükle, kendi dilinde tarifleri al!")
+st.title("👨‍🍳 Global AI Chef v3")
+st.write("Fotoğraf yükle, yeni nesil Gemini 3 ile tarifleri al!")
 
 uploaded_file = st.file_uploader("Bir fotoğraf seç...", type=["jpg", "jpeg", "png"])
 
@@ -35,18 +30,14 @@ if uploaded_file:
     st.image(image, use_container_width=True)
     
     if st.button('Tarifleri Oluştur'):
-        with st.spinner('Şef düşünüyor...'):
+        with st.spinner('Şef Gemini 3 ile analiz ediyor...'):
             try:
-                # Model ismini 'gemini-1.5-flash' olarak teyit ediyoruz
+                # Model ismini gemini-3-flash olarak güncelledik
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash", 
+                    model="gemini-3-flash", 
                     contents=[GLOBAL_PROMPT, image]
                 )
-                if response.text:
-                    st.markdown("---")
-                    st.markdown(response.text)
-                else:
-                    st.warning("Yapay zeka bir yanıt üretemedi. Lütfen farklı bir fotoğraf deneyin.")
+                st.markdown("---")
+                st.markdown(response.text)
             except Exception as e:
-                st.error(f"Hata detayı: {e}")
-                # Hata 404 devam ederse, alternatif olarak 'gemini-1.5-pro' denenebilir.
+                st.error(f"Bir hata oluştu: {e}")
